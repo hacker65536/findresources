@@ -64,8 +64,8 @@ to quickly create a Cobra application.`,
 
 		log.WithFields(
 			log.Fields{
-				"resourcetypefilters":    resourcetypefilters,
-				"tagfilters": tagfilters,
+				"resourcetypefilters": resourcetypefilters,
+				"tagfilters":          tagfilters,
 			}).Debug()
 
 		myaws.ListAwsRes(tagfilters, resourcetypefilters)
