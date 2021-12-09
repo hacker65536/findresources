@@ -2,62 +2,50 @@ package myaws
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
 	rgtapi "github.com/aws/aws-sdk-go-v2/service/resourcegroupstaggingapi"
 	"github.com/aws/aws-sdk-go-v2/service/resourcegroupstaggingapi/types"
-	"github.com/iancoleman/strcase"
 	log "github.com/sirupsen/logrus"
 )
 
-func ListAwsRes(tag map[string]string, restype []string) {
+type TagFilter struct {
+	Key string
+	Val string
+}
+
+func ListAwsRes(tag []TagFilter, restypes []string) {
 	// Load the Shared AWS Configuration (~/.aws/config)
 	cfg, err := config.LoadDefaultConfig(context.TODO())
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	t := []types.TagFilter{}
-	for k, v := range tag {
-		t = append(t, types.TagFilter{
-			Key:    aws.String(strcase.ToCamel(k)),
-			Values: []string{v},
-		},
-		)
+	tfs := []types.TagFilter{}
+	for _, v := range tag {
+		tfs = append(tfs, types.TagFilter{
+			Key:    aws.String(v.Key),
+			Values: []string{v.Val},
+		})
 	}
-
-	/*
-		restype := []string{
-
-			// "ec2:instance",
-			// "rds:db",
-			"elasticloadbalancing:loadbalancer",
-		}
-		tag := []types.TagFilter{
-			{
-				Key:    aws.String("Stage"),
-				Values: []string{"production"},
-			},
-			{
-				Key:    aws.String("Project"),
-				Values: []string{"myproject"},
-			},
-		}
-	*/
 
 	svc := rgtapi.NewFromConfig(cfg)
 
 	params := &rgtapi.GetResourcesInput{
-		ResourceTypeFilters: restype,
-		TagFilters:          t,
+		ResourceTypeFilters: restypes,
+		TagFilters:          tfs,
 	}
 
 	log.WithFields(
 		log.Fields{
-			"params": params,
-		}).Debug("[debug]")
+			"params": func() string {
+				j, _ := json.Marshal(params)
+				return string(j)
+			}(),
+		}).Debug()
 	p := rgtapi.NewGetResourcesPaginator(svc, params, func(o *rgtapi.GetResourcesPaginatorOptions) {
 		o.Limit = 100
 		o.StopOnDuplicateToken = true

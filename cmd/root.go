@@ -44,17 +44,31 @@ to quickly create a Cobra application.`,
 		if debug {
 			log.SetLevel(log.DebugLevel)
 		}
+		// If a config file is found, read it in.
+		if err := viper.ReadInConfig(); err == nil {
+			log.WithFields(
+				log.Fields{
+					"config file": viper.ConfigFileUsed(),
+				}).Debug()
+		}
 
-		tag := viper.GetStringMapString("tagfilters")
-		restype := viper.GetStringSlice("restype")
+		tagfilters := []myaws.TagFilter{}
+		if err := viper.UnmarshalKey("tagfilters", &tagfilters); err != nil {
+			log.WithFields(
+				log.Fields{
+					"tagfilters": tagfilters,
+				}).Fatal("can't unmarshalkey ")
+		}
+
+		resourcetypefilters := viper.GetStringSlice("resourceTypeFilters")
 
 		log.WithFields(
 			log.Fields{
-				"tag":     tag,
-				"restype": restype,
-			}).Debug("[debug]")
+				"resourcetypefilters":    resourcetypefilters,
+				"tagfilters": tagfilters,
+			}).Debug()
 
-		myaws.ListAwsRes(tag, restype)
+		myaws.ListAwsRes(tagfilters, resourcetypefilters)
 	},
 }
 
@@ -99,11 +113,13 @@ func initConfig() {
 
 	viper.AutomaticEnv() // read in environment variables that match
 
-	// If a config file is found, read it in.
-	if err := viper.ReadInConfig(); err == nil {
-		log.WithFields(
-			log.Fields{
-				"config file": viper.ConfigFileUsed(),
-			}).Debug("[debug]")
-	}
+	/*
+		// If a config file is found, read it in.
+		if err := viper.ReadInConfig(); err == nil {
+			log.WithFields(
+				log.Fields{
+					"config file": viper.ConfigFileUsed(),
+				}).Debug("[debug]")
+		}
+	*/
 }
