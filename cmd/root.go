@@ -107,8 +107,7 @@ func initConfig() {
 		viper.AddConfigPath(home)
 		viper.AddConfigPath(".")
 		viper.SetConfigType("yaml")
-		viper.SetConfigName(".findresources")
-		viper.SetConfigName(".res")
+		viper.SetConfigName(".findres")
 	}
 
 	viper.AutomaticEnv() // read in environment variables that match
