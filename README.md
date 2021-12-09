@@ -1,2 +1,2 @@
-# goapptemplate
+# findresources
 template
